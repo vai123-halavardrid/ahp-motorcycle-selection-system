@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list-ul me-2"></i>Chọn phương án
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Manual Input Form -->
+                <form method="POST" class="mb-4">
+                    <div class="row align-items-end">
+                        <div class="col-md-8">
+                            <label for="name" class="form-label">Tên xe máy</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-plus me-2"></i>Thêm phương án
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <hr>
+
+                <!-- Excel Import Form -->
+                <form method="POST" enctype="multipart/form-data" class="mb-4">
+                    <div class="row align-items-end">
+                        <div class="col-md-8">
+                            <label for="file" class="form-label">Import từ file Excel</label>
+                            <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls" required>
+                            <div class="form-text">
+                                File Excel phải có các cột: Tên xe máy, Ngân sách, Kiểu dáng, Hiệu suất & Công suất, 
+                                Tiết kiệm nhiên liệu, Công nghệ & Tính năng, Kích thước & Trọng lượng
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-file-import me-2"></i>Import Excel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Download Template Button -->
+                <div class="text-center mb-4">
+                    <a href="#" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-download me-2"></i>Tải mẫu file Excel
+                    </a>
+                </div>
+
+                <!-- Alternatives List -->
+                {% if alternatives %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Tên xe máy</th>
+                                    <th>Thời gian thêm</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alt in alternatives %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ alt.name }}</td>
+                                    <td>{{ alt.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Continue Button -->
+                    {% if alternatives|length >= 3 %}
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('main.criteria_comparison') }}" class="btn btn-primary">
+                            <i class="fas fa-arrow-right me-2"></i>Tiếp tục
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning text-center">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Cần ít nhất 3 phương án để tiếp tục
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Chưa có phương án nào được thêm
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-question-circle me-2"></i>Hướng dẫn
+                </h5>
+                <ul class="mb-0">
+                    <li>Bạn có thể thêm phương án thủ công hoặc import từ file Excel</li>
+                    <li>File Excel cần có đầy đủ các cột theo yêu cầu</li>
+                    <li>Cần ít nhất 3 phương án để tiếp tục quy trình đánh giá</li>
+                    <li>Có thể xóa phương án nếu cần thiết</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Enable file input tooltip
+    var fileInput = document.getElementById('file');
+    var tooltip = new bootstrap.Tooltip(fileInput, {
+        title: 'Chọn file Excel (.xlsx, .xls)',
+        placement: 'top'
+    });
+
+    // Preview file name
+    fileInput.addEventListener('change', function(e) {
+        var fileName = e.target.files[0].name;
+        var nextSibling = e.target.nextElementSibling;
+        nextSibling.innerText = fileName;
+    });
+</script>
+{% endblock %}
+{% endblock %}
