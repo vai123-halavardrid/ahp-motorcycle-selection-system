@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .matrix-input {
+        width: 80px !important;
+    }
+    .matrix-cell {
+        text-align: center;
+        vertical-align: middle !important;
+    }
+    .matrix-header {
+        min-width: 150px;
+        background-color: #f8f9fa !important;
+    }
+    .reciprocal-value {
+        color: #6c757d;
+        font-style: italic;
+    }
+    .help-tooltip {
+        color: #6c757d;
+        cursor: help;
+    }
+    .progress-indicator {
+        height: 4px;
+        border-radius: 2px;
+        background-color: #e9ecef;
+        margin-bottom: 1rem;
+    }
+    .progress-indicator .progress-bar {
+        background-color: #007bff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-12">
+        <!-- Progress Indicator -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Tiến độ so sánh theo tiêu chí</h6>
+                <div class="progress-indicator">
+                    <div class="progress-bar" style="width: {{ ((criterion_id + 1) / 6) * 100 }}%"></div>
+                </div>
+                <div class="d-flex justify-content-between small text-muted">
+                    <span>Tiêu chí {{ criterion_id + 1 }}/6</span>
+                    <span>{{ criterion }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Matrix -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-balance-scale me-2"></i>So sánh các phương án theo tiêu chí: {{ criterion }}
+                </h5>
+                <span class="help-tooltip" data-bs-toggle="tooltip" title="Nhập giá trị từ 1-9 hoặc phân số 1/2-1/9">
+                    <i class="fas fa-question-circle"></i>
+                </span>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="comparisonForm">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="matrix-header">Phương án</th>
+                                    {% for alt in alternatives %}
+                                        <th class="matrix-header">{{ alt.name }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for i in range(alternatives|length) %}
+                                <tr>
+                                    <th class="matrix-header">{{ alternatives[i].name }}</th>
+                                    {% for j in range(alternatives|length) %}
+                                        <td class="matrix-cell">
+                                            {% if i == j %}
+                                                1
+                                            {% elif j > i %}
+                                                <input type="text" 
+                                                       class="form-control form-control-sm matrix-input"
+                                                       name="comparison_{{ i }}_{{ j }}"
+                                                       id="comparison_{{ i }}_{{ j }}"
+                                                       required
+                                                       pattern="^(?:[1-9]|[1-9]/[2-9])$"
+                                                       title="Nhập số từ 1-9 hoặc phân số 1/2-1/9">
+                                            {% else %}
+                                                <span class="reciprocal-value" id="reciprocal_{{ i }}_{{ j }}">
+                                                    <!-- Will be filled by JavaScript -->
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-calculator me-2"></i>Tính toán và tiếp tục
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Criterion Description Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Hướng dẫn đánh giá tiêu chí: {{ criterion }}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% set criterion_guides = {
+                    'Ngân sách': 'So sánh dựa trên giá bán và chi phí bảo dưỡng. Giá thấp hơn được đánh giá cao hơn.',
+                    'Kiểu dáng': 'So sánh về mặt thẩm mỹ, thiết kế và phong cách của xe.',
+                    'Hiệu suất & Công suất': 'So sánh về khả năng vận hành, tốc độ và công suất động cơ.',
+                    'Tiết kiệm nhiên liệu': 'So sánh mức tiêu thụ nhiên liệu, xe tiết kiệm hơn được đánh giá cao hơn.',
+                    'Công nghệ & Tính năng': 'So sánh các tính năng hiện đại và công nghệ tích hợp.',
+                    'Kích thước & Trọng lượng': 'So sánh về tính linh hoạt, dễ điều khiển và phù hợp với người sử dụng.'
+                } %}
+                
+                <p class="mb-0">{{ criterion_guides[criterion] }}</p>
+            </div>
+        </div>
+
+        <!-- Scale Reference -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-ruler me-2"></i>Thang đánh giá
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Giá trị</th>
+                                    <th>Mức độ ưu tiên</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Tương đương nhau</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Ưu tiên hơn vừa phải</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td>Ưu tiên hơn mạnh</td>
+                                </tr>
+                                <tr>
+                                    <td>7</td>
+                                    <td>Ưu tiên hơn rất mạnh</td>
+                                </tr>
+                                <tr>
+                                    <td>9</td>
+                                    <td>Ưu tiên hơn tuyệt đối</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">Lưu ý:</h6>
+                            <ul class="mb-0">
+                                <li>Nhập giá trị từ 1-9 hoặc phân số 1/2-1/9</li>
+                                <li>Các giá trị 2,4,6,8 là mức trung gian</li>
+                                <li>Phân số (vd: 1/3) thể hiện mức độ ngược lại</li>
+                                <li>Ma trận sẽ tự động điền các giá trị đối xứng</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Enable tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Function to calculate reciprocal value
+    function calculateReciprocal(value) {
+        if (value.includes('/')) {
+            let [num, den] = value.split('/');
+            return den;
+        } else {
+            return '1/' + value;
+        }
+    }
+
+    // Function to update reciprocal cells
+    function updateReciprocalCells(input) {
+        let [_, i, j] = input.id.split('_');
+        let reciprocalCell = document.getElementById(`reciprocal_${j}_${i}`);
+        
+        if (input.value && input.validity.valid) {
+            reciprocalCell.textContent = calculateReciprocal(input.value);
+        } else {
+            reciprocalCell.textContent = '';
+        }
+    }
+
+    // Add event listeners to all matrix inputs
+    document.querySelectorAll('.matrix-input').forEach(input => {
+        input.addEventListener('input', function() {
+            updateReciprocalCells(this);
+        });
+    });
+
+    // Form validation
+    document.getElementById('comparisonForm').addEventListener('submit', function(e) {
+        let inputs = document.querySelectorAll('.matrix-input');
+        let isValid = true;
+
+        inputs.forEach(input => {
+            if (!input.value || !input.validity.valid) {
+                isValid = false;
+                input.classList.add('is-invalid');
+            } else {
+                input.classList.remove('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Vui lòng nhập đầy đủ và đúng định dạng các giá trị so sánh.');
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}
