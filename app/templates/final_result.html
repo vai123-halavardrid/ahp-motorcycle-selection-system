@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .rank-badge {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: #007bff;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    .rank-1 {
+        background-color: #28a745;
+    }
+    .rank-2 {
+        background-color: #17a2b8;
+    }
+    .rank-3 {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    .score-bar {
+        height: 8px;
+        border-radius: 4px;
+        background-color: #e9ecef;
+    }
+    .score-bar .progress-bar {
+        border-radius: 4px;
+    }
+    .chart-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .export-btn {
+        width: 150px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <!-- Results Header -->
+        <div class="card mb-4">
+            <div class="card-body text-center py-4">
+                <h4 class="card-title mb-4">
+                    <i class="fas fa-trophy text-warning me-2"></i>Kết quả phân tích AHP
+                </h4>
+                <p class="lead text-muted mb-0">{{ conclusion }}</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Ranking Table -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-list-ol me-2"></i>Xếp hạng các phương án
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Xếp hạng</th>
+                                        <th>Tên phương án</th>
+                                        <th>Điểm số</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in results %}
+                                    <tr>
+                                        <td>
+                                            <div class="rank-badge rank-{{ result.rank }}">
+                                                {{ result.rank }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <strong>{{ result.name }}</strong>
+                                            <div class="score-bar mt-2">
+                                                <div class="progress-bar bg-primary" 
+                                                     role="progressbar" 
+                                                     style="width: {{ result.percentage }}%">
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong>{{ "%.4f"|format(result.score) }}</strong>
+                                            <div class="small text-muted">{{ "%.1f"|format(result.percentage) }}%</div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pie Chart -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>Biểu đồ phân bố kết quả
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="resultsPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Options -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-download me-2"></i>Xuất kết quả
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="btn-group">
+                    <a href="{{ url_for('main.export_result', format='pdf') }}" class="btn btn-primary export-btn me-2">
+                        <i class="fas fa-file-pdf me-2"></i>PDF
+                    </a>
+                    <a href="{{ url_for('main.export_result', format='excel') }}" class="btn btn-success export-btn">
+                        <i class="fas fa-file-excel me-2"></i>Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Prepare data for pie chart
+    const data = {
+        labels: {{ results|map(attribute='name')|list|tojson }},
+        datasets: [{
+            data: {{ results|map(attribute='percentage')|list|tojson }},
+            backgroundColor: [
+                '#28a745',  // First place
+                '#17a2b8',  // Second place
+                '#ffc107',  // Third place
+                '#007bff',  // Others
+                '#6c757d',
+                '#dc3545'
+            ]
+        }]
+    };
+
+    // Configure and create pie chart
+    const ctx = document.getElementById('resultsPieChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'pie',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ${context.raw.toFixed(1)}%`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}
