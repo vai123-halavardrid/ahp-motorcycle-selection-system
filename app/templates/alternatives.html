@@ -32,7 +32,9 @@
                     <div class="row align-items-end">
                         <div class="col-md-8">
                             <label for="file" class="form-label">Import từ file Excel</label>
-                            <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls" required>
+                            <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls" required 
+                                   data-bs-toggle="tooltip" data-bs-placement="top" 
+                                   title="Chọn file Excel (.xlsx, .xls)">
                             <div class="form-text">
                                 File Excel phải có các cột: Tên xe máy, Ngân sách, Kiểu dáng, Hiệu suất & Công suất, 
                                 Tiết kiệm nhiên liệu, Công nghệ & Tính năng, Kích thước & Trọng lượng
@@ -120,22 +122,28 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
 {% block extra_js %}
 <script>
-    // Enable file input tooltip
-    var fileInput = document.getElementById('file');
-    var tooltip = new bootstrap.Tooltip(fileInput, {
-        title: 'Chọn file Excel (.xlsx, .xls)',
-        placement: 'top'
-    });
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize all tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
 
-    // Preview file name
-    fileInput.addEventListener('change', function(e) {
-        var fileName = e.target.files[0].name;
-        var nextSibling = e.target.nextElementSibling;
-        nextSibling.innerText = fileName;
+        // Preview file name
+        var fileInput = document.getElementById('file');
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                var fileName = e.target.files[0].name;
+                var formText = this.nextElementSibling;
+                if (formText && formText.classList.contains('form-text')) {
+                    formText.innerHTML = 'Selected file: ' + fileName;
+                }
+            });
+        }
     });
 </script>
-{% endblock %}
 {% endblock %}
