@@ -2,12 +2,7 @@ from flask import Blueprint, render_template, request, jsonify, flash, redirect,
 from werkzeug.utils import secure_filename
 import pandas as pd
 import os
-from .database import (
-    insert_alternative, insert_criteria_comparison, 
-    insert_alternative_comparison, insert_final_result,
-    get_alternatives, get_criteria_comparison, 
-    get_alternative_comparisons, get_final_result
-)
+from .storage import storage
 from .ahp import AHPCalculator
 import numpy as np
 from datetime import datetime
@@ -50,7 +45,7 @@ def alternatives():
                         flash('File Excel không đúng định dạng. Vui lòng kiểm tra lại.', 'error')
                         return redirect(request.url)
                     
-                    # Save alternatives to database
+                    # Save alternatives to storage
                     for _, row in df.iterrows():
                         alternative_data = {
                             'name': row['Tên xe máy'],
@@ -59,7 +54,7 @@ def alternatives():
                                 for criterion in CRITERIA
                             }
                         }
-                        insert_alternative(alternative_data)
+                        storage.insert_alternative(alternative_data)
                     
                     flash('Import thành công!', 'success')
                 except Exception as e:
@@ -74,14 +69,14 @@ def alternatives():
                         'name': name,
                         'criteria_values': {}  # Empty for manual input
                     }
-                    insert_alternative(alternative_data)
+                    storage.insert_alternative(alternative_data)
                     flash('Thêm phương án thành công!', 'success')
                 except Exception as e:
                     flash(f'Lỗi khi thêm phương án: {str(e)}', 'error')
                     return redirect(request.url)
 
     # Get all alternatives for display
-    alternatives = get_alternatives()
+    alternatives = storage.get_alternatives()
     return render_template('alternatives.html', alternatives=alternatives)
 
 @main_bp.route('/criteria-comparison', methods=['GET', 'POST'])
@@ -106,7 +101,7 @@ def criteria_comparison():
                 flash('Ma trận không nhất quán (CR > 0.1). Vui lòng nhập lại.', 'error')
                 return redirect(request.url)
 
-            # Save to database
+            # Save to storage
             comparison_data = {
                 'matrix': result['matrix'].tolist(),
                 'weights': result['weights'].tolist(),
@@ -114,7 +109,7 @@ def criteria_comparison():
                 'ci': float(result['ci']),
                 'cr': float(result['cr'])
             }
-            insert_criteria_comparison(comparison_data)
+            storage.insert_criteria_comparison(comparison_data)
             
             flash('So sánh tiêu chí thành công!', 'success')
             return redirect(url_for('main.alternative_comparison', criterion_id=0))
@@ -131,7 +126,7 @@ def alternative_comparison(criterion_id):
     if criterion_id >= len(CRITERIA):
         return redirect(url_for('main.final_result'))
 
-    alternatives = get_alternatives()
+    alternatives = storage.get_alternatives()
     if len(alternatives) < 3:
         flash('Cần ít nhất 3 phương án để tiếp tục.', 'error')
         return redirect(url_for('main.alternatives'))
@@ -159,7 +154,7 @@ def alternative_comparison(criterion_id):
                 flash('Ma trận không nhất quán (CR > 0.1). Vui lòng nhập lại.', 'error')
                 return redirect(request.url)
 
-            # Save to database
+            # Save to storage
             comparison_data = {
                 'criterion_id': criterion_id,
                 'criterion_name': CRITERIA[criterion_id],
@@ -170,7 +165,7 @@ def alternative_comparison(criterion_id):
                 'ci': float(result['ci']),
                 'cr': float(result['cr'])
             }
-            insert_alternative_comparison(comparison_data)
+            storage.insert_alternative_comparison(comparison_data)
             
             flash('So sánh phương án thành công!', 'success')
             return redirect(url_for('main.alternative_comparison', criterion_id=criterion_id + 1))
@@ -191,9 +186,9 @@ def final_result():
     """Calculate and display final results"""
     try:
         # Get all necessary data
-        criteria_comparison = get_criteria_comparison()
-        alternative_comparisons = get_alternative_comparisons()
-        alternatives = get_alternatives()
+        criteria_comparison = storage.get_criteria_comparison()
+        alternative_comparisons = storage.get_alternative_comparisons()
+        alternatives = storage.get_alternatives()
 
         if not all([criteria_comparison, alternative_comparisons, alternatives]):
             flash('Thiếu dữ liệu để tính toán kết quả cuối cùng.', 'error')
@@ -235,7 +230,7 @@ def final_result():
             'results': results,
             'conclusion': conclusion
         }
-        insert_final_result(result_data)
+        storage.insert_final_result(result_data)
 
         return render_template('final_result.html', results=results, conclusion=conclusion)
 
@@ -247,7 +242,7 @@ def final_result():
 def export_result(format):
     """Export results to Excel or PDF"""
     try:
-        final_result = get_final_result()
+        final_result = storage.get_final_result()
         if not final_result:
             flash('Không có dữ liệu để xuất.', 'error')
             return redirect(url_for('main.final_result'))
