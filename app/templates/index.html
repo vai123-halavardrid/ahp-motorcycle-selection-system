@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <h1 class="display-4 mb-4">
+                    <i class="fas fa-motorcycle text-primary mb-3 d-block"></i>
+                    Hệ thống hỗ trợ quyết định mua xe máy
+                </h1>
+                <p class="lead text-muted mb-4">
+                    Sử dụng phương pháp phân tích thứ bậc (AHP) để giúp bạn lựa chọn xe máy phù hợp nhất
+                </p>
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Quy trình đánh giá</h5>
+                                <div class="progress mb-3">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 33%"></div>
+                                </div>
+                                <div class="row text-start small">
+                                    <div class="col-md-4">
+                                        <p><i class="fas fa-1 me-2"></i>Chọn phương án</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p><i class="fas fa-2 me-2"></i>So sánh tiêu chí</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p><i class="fas fa-3 me-2"></i>Xem kết quả</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ url_for('main.alternatives') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-play me-2"></i>Bắt đầu
+                </a>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-excel text-success mb-3 fa-2x"></i>
+                        <h5 class="card-title">Import Excel</h5>
+                        <p class="card-text small text-muted">
+                            Nhập dữ liệu từ file Excel có sẵn hoặc nhập thủ công các phương án
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-balance-scale text-primary mb-3 fa-2x"></i>
+                        <h5 class="card-title">So sánh khoa học</h5>
+                        <p class="card-text small text-muted">
+                            Đánh giá dựa trên 6 tiêu chí chính với phương pháp AHP
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-pie text-danger mb-3 fa-2x"></i>
+                        <h5 class="card-title">Kết quả trực quan</h5>
+                        <p class="card-text small text-muted">
+                            Xem kết quả dưới dạng biểu đồ và xuất báo cáo PDF/Excel
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Criteria -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title text-center mb-4">Các tiêu chí đánh giá</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-3">
+                                <i class="fas fa-money-bill text-success me-2"></i>
+                                <strong>Ngân sách</strong>
+                                <p class="small text-muted ms-4 mb-0">Giá thành và chi phí bảo dưỡng</p>
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-paint-brush text-primary me-2"></i>
+                                <strong>Kiểu dáng</strong>
+                                <p class="small text-muted ms-4 mb-0">Thiết kế và thẩm mỹ</p>
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-tachometer-alt text-danger me-2"></i>
+                                <strong>Hiệu suất & Công suất</strong>
+                                <p class="small text-muted ms-4 mb-0">Khả năng vận hành và mạnh mẽ</p>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-3">
+                                <i class="fas fa-gas-pump text-warning me-2"></i>
+                                <strong>Tiết kiệm nhiên liệu</strong>
+                                <p class="small text-muted ms-4 mb-0">Mức tiêu thụ nhiên liệu</p>
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-microchip text-info me-2"></i>
+                                <strong>Công nghệ & Tính năng</strong>
+                                <p class="small text-muted ms-4 mb-0">Các tính năng hiện đại</p>
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-weight text-secondary me-2"></i>
+                                <strong>Kích thước & Trọng lượng</strong>
+                                <p class="small text-muted ms-4 mb-0">Tính linh hoạt và dễ điều khiển</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
